@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ECG AI System</title>
+    <link rel="stylesheet" href="static/style.css">
+</head>
+<body>
+    <h1>ECG AI System</h1>
+
+    <div class="container">
+        <div class="card">
+            <p>Welcome to the ECG AI System. Monitor and analyze your ECG signals with advanced artificial intelligence.</p>
+            <button onclick="redirectToDashboard()">Reocord ECG of Patient</button>
+        </div>
+    </div>
+
+    <div class="animation-container">
+        <span class="heart">&#10084;</span>
+        <p>Advanced AI at your fingertips</p>
+    </div>
+
+    <script>
+        function redirectToDashboard() {
+            // Add the URL to your actual dashboard page
+            window.location.href = '/dashboard';
+        }
+    </script>
+</body>
+</html>

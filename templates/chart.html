@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <style>
+        #buttonclk,
+        #anotherButton { /* Add the actual ID of your second button */
+            display: inline-block;
+            margin-right: 10px; /* Adjust the margin as needed */
+        }
+    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ECG-AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdn.plot.ly/plotly-2.8.0.min.js"></script>
+</head>
+<body>
+    <h2>ECG-AI: AN INTELLIGENT SYSTEM FOR CARDIAC HEALTH MONITORING</h2>
+    <div id="ecgChart" style="width: 95%; margin: auto;"></div>
+    
+    <button id="buttonclk" onclick="checkArduinoConnection()">Record ECG and Render ECG Graph</button>
+
+    <button id="fileSelectorBtn" onclick="selectfiles()">Upload Data from local Device</button>
+    <center><table class="styled-table">
+        <thead>
+            <tr>
+                <th>RR Interval</th>
+                <th>Heart Rate</th>
+                <th>AI Predication</th>
+            </tr>
+            <tr>
+                <center> <td id="data-placeholder1">-</td>
+                    <center> <td id="data-placeholder2">-</td>
+                        <center> <td id="data-placeholder3">-</td>
+        </thead>
+        <tbody id="data-table-body"></tbody>
+    </table>
+
+    
+    <div id="overlay" class="overlay">
+        <div class="spinner"></div><br>
+        <p>ECG IS BEING RECORDED</p>
+    </div>
+   
+
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+
+
+    <script>
+
+        function selectfiles(){
+        document.getElementById('fileSelectorBtn').addEventListener('click', function() {
+            // Create a file input element
+            var input = document.createElement('input');
+            input.type = 'file';
+      
+            // Trigger a click event on the file input element
+            input.click();
+      
+            // Listen for the 'change' event when the user selects a file
+            input.addEventListener('change', function() {
+              // Get the selected file
+              var selectedFile = input.files[0];
+      
+              // Get the path of the selected file (note: this is not the full path for security reasons)
+              var filePath = selectedFile ? selectedFile.name : 'No file selected';
+      
+              // Display the file path (you can modify this part based on your needs)
+              
+              fetch('static/' + filePath)
+              .then(response => response.text())
+              .then(data => {
+                  const values = parseCSV(data);
+                  renderChart(values);
+                  customfile(filePath);
+                  
+                
+              })
+
+            });
+          });
+
+        }
+
+    </script>
+
+
+    <script>
+        function customfile(filename) {
+            fetch('/customfile', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ inputString: filename })
+            })
+            .then(response => response.json())
+            .then(data => {
+         
+                document.getElementById('data-placeholder1').textContent = data.RR;
+                document.getElementById('data-placeholder2').textContent = data.heart;
+        
+              
+                if (parseFloat(data.SD) > 10) {
+                    document.getElementById('data-placeholder3').textContent = "Atrial Fibrillation Detected";
+                } else {
+                    document.getElementById('data-placeholder3').textContent = "Normal";
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+
+
+    </script>
+   
+
+    <script>
+
+        function fetchDataAndUpdate() {
+            fetch('/rrinter', {
+                method: 'GET'
+            })
+            .then(response => response.json())
+            .then(data => {
+             
+                document.getElementById('data-placeholder1').textContent = data.RR;
+                document.getElementById('data-placeholder2').textContent = data.heart;
+        
+                // Check if SD is greater than 10
+                if (parseFloat(data.SD) > 10) {
+                    document.getElementById('data-placeholder3').textContent = "Atrial Fibrillation Detected";
+                } else {
+                    document.getElementById('data-placeholder3').textContent = "Normal";
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // Attach an event listener to the button
+            document.getElementById('buttonclk').addEventListener('click', function() {
+                // Call fetchDataAndUpdate when the button is clicked
+                setTimeout(fetchDataAndUpdate, 10000); // 6000 milliseconds = 6 seconds
+            });
+        });
+
+    
+
+
+
+        const checkArduinoConnection = () => {
+            fetch('/check_arduino_connection')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.connected) {
+                        ecgrecord();
+                        runScriptAndRenderECG();
+                        
+                    } else {
+                        alert('Arduino is not connected.');
+                    }
+                })
+                
+        }
+
+
+
+
+
+        function ecgrecord() {
+            // Use AJAX or fetch to send a request to the server
+            fetch('/run_script');
+        }
+
+
+        function runScript() {
+            
+
+            document.getElementById('overlay').style.display = 'flex'; // Show overlay
+
+            // Simulate script execution (replace with actual script execution)
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    resolve();
+                }, 15000); // Simulating 10 seconds
+            });
+        }
+
+        function runScriptAndRenderECG() {
+            runScript().then(() => {
+                // Assume 'ecg_data.csv' contains a single column of values
+                setTimeout(() => {
+                    
+                }, 8000);
+                fetch('static/recording.csv')
+                    .then(response => response.text())
+                    .then(data => {
+                        const values = parseCSV(data);
+                        renderChart(values);
+                    })
+                    .finally(() => {
+                        document.getElementById('overlay').style.display = 'none'; // Hide overlay
+                    });
+            });
+        }
+
+        function parseCSV(csv) {   
+            // Parse CSV data and return an array of values
+            return csv.trim().split('\n').map(value => parseFloat(value));
+        }
+
+        function renderChart(values) {
+            const labels = Array.from({ length: values.length }, (_, i) => i + 1); // Assuming a sequential time series
+
+            const trace = {
+                x: labels,
+                y: values,
+                mode: 'lines',
+                type: 'scatter',
+                name: 'ECG Values',
+                line: { color: 'rgb(75, 192, 192)' },
+            };
+
+            const layout = {
+                title: '',
+                xaxis: { title: 'Time' },
+                yaxis: { title: 'ECG Values' },
+            };
+
+            Plotly.newPlot('ecgChart', [trace], layout);
+            
+        }
+    </script>
+</body>
+</html>

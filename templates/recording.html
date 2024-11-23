@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>File Selector</title>
+</head>
+<body>
+
+  <button id="fileSelectorBtn">Select File</button>
+
+  <script>
+    document.getElementById('fileSelectorBtn').addEventListener('click', function() {
+      // Create a file input element
+      var input = document.createElement('input');
+      input.type = 'file';
+
+      // Trigger a click event on the file input element
+      input.click();
+
+      // Listen for the 'change' event when the user selects a file
+      input.addEventListener('change', function() {
+        // Get the selected file
+        var selectedFile = input.files[0];
+
+        // Get the path of the selected file (note: this is not the full path for security reasons)
+        var filePath = selectedFile ? selectedFile.name : 'No file selected';
+
+        // Display the file path (you can modify this part based on your needs)
+        alert('Selected File: ' + filePath);
+      });
+    });
+  </script>
+
+</body>
+</html>
