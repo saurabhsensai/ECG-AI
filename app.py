@@ -11,7 +11,6 @@ app = Flask(__name__)
 def testmodel():
     subprocess.run(['python', 'prediction/model/testmodel.py'])
     
-
 def is_arduino_connected():
     arduino_ports = [
         p.device
